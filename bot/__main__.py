@@ -5,8 +5,9 @@ from psutil import disk_usage, cpu_percent, swap_memory, cpu_count, virtual_memo
 from time import time
 from sys import executable
 from telegram.ext import CommandHandler
+from telegram import ParseMode 
 
-from bot import bot, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, DB_URI, alive, app, main_loop, AUTHORIZED_CHATS
+from bot import bot, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, DB_URI, alive, app, main_loop, AUTHORIZED_CHATS, IMAGE_URL
 from .helper.ext_utils.fs_utils import start_cleanup, clean_all, exit_clean_up
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
 from .helper.ext_utils.db_handler import DbManger
@@ -23,41 +24,53 @@ def stats(update, context):
         last_commit = check_output(["git log -1 --date=short --pretty=format:'%cd <b>From</b> %cr'"], shell=True).decode()
     else:
         last_commit = 'No UPSTREAM_REPO'
-    total, used, free, disk = disk_usage('/')
+    currentTime = get_readable_time(time() - botStartTime)
+    osUptime = get_readable_time(time() - boot_time())
+    total, used, free, disk= disk_usage('/')
+    total = get_readable_file_size(total)
+    used = get_readable_file_size(used)
+    free = get_readable_file_size(free)
+    sent = get_readable_file_size(net_io_counters().bytes_sent)
+    recv = get_readable_file_size(net_io_counters().bytes_recv)
+    cpuUsage = cpu_percent(interval=0.5)
+    p_core = cpu_count(logical=False)
+    t_core = cpu_count(logical=True)
     swap = swap_memory()
+    swap_p = swap.percent
+    swap_t = get_readable_file_size(swap.total)
     memory = virtual_memory()
-    stats = f'<b>Commit Date:</b> {last_commit}\n\n'\
-            f'<b>Bot Uptime:</b> {get_readable_time(time() - botStartTime)}\n'\
-            f'<b>OS Uptime:</b> {get_readable_time(time() - boot_time())}\n\n'\
-            f'<b>Total Disk Space:</b> {get_readable_file_size(total)}\n'\
-            f'<b>Used:</b> {get_readable_file_size(used)} | <b>Free:</b> {get_readable_file_size(free)}\n\n'\
-            f'<b>Upload:</b> {get_readable_file_size(net_io_counters().bytes_sent)}\n'\
-            f'<b>Download:</b> {get_readable_file_size(net_io_counters().bytes_recv)}\n\n'\
-            f'<b>CPU:</b> {cpu_percent(interval=0.5)}%\n'\
-            f'<b>RAM:</b> {memory.percent}%\n'\
-            f'<b>DISK:</b> {disk}%\n\n'\
-            f'<b>Physical Cores:</b> {cpu_count(logical=False)}\n'\
-            f'<b>Total Cores:</b> {cpu_count(logical=True)}\n\n'\
-            f'<b>SWAP:</b> {get_readable_file_size(swap.total)} | <b>Used:</b> {swap.percent}%\n'\
-            f'<b>Memory Total:</b> {get_readable_file_size(memory.total)}\n'\
-            f'<b>Memory Free:</b> {get_readable_file_size(memory.available)}\n'\
-            f'<b>Memory Used:</b> {get_readable_file_size(memory.used)}\n'
-    sendMessage(stats, context.bot, update.message)
+    mem_p = memory.percent
+    mem_t = get_readable_file_size(memory.total)
+    mem_a = get_readable_file_size(memory.available)
+    mem_u = get_readable_file_size(memory.used)
+    stats = f'<b>╭──</b>《🌐<b> Bot Statistics 🌐</b>》\n' \
+            f'<b>│</b>\n' \
+            f'<b>├  ▶ Rᴜɴɴɪɴɢ Sɪɴᴄᴇ ▶ : {currentTime}</b>\n' \
+            f'<b>├  💾 Tᴏᴛᴀʟ Dɪsᴋ Sᴘᴀᴄᴇ : {total}</b>\n' \
+            f'<b>├  📀 Tᴏᴛᴀʟ Usᴇᴅ Sᴘᴀᴄᴇ : {used}</b>\n' \
+            f'<b>├  💿 Tᴏᴛᴀʟ Fʀᴇᴇ Sᴘᴀᴄᴇ : {free}</b>\n' \
+            f'<b>├  🔼 Tᴏᴛᴀʟ Uᴘʟᴏᴀᴅ : {sent}</b>\n' \
+            f'<b>├  🔽 Tᴏᴛᴀʟ Dᴏᴡɴʟᴏᴀᴅ : {recv}</b>\n' \
+            f'<b>├  🖥️ Cᴘᴜ : {cpuUsage}%</b>\n' \
+            f'<b>├  🎮 Rᴀᴍ : {mem_p}%</b>\n' \
+            f'<b>├  💽 Dɪsᴋ : {disk}%</b>\n' \
+            f'<b>│</b>\n' \
+            f'<b>╰──《 ☣️ @SLTCUpdates ☣️ 》</b>'
+    update.effective_message.reply_photo(IMAGE_URL, stats, parse_mode=ParseMode.HTML)
 
 
 def start(update, context):
     buttons = ButtonMaker()
-    buttons.buildbutton("Repo", "https://www.github.com/anasty17/mirror-leech-telegram-bot")
-    buttons.buildbutton("Owner", "https://www.github.com/anasty17")
-    reply_markup = buttons.build_menu(2)
+    buttons.buildbutton("Channel", "https://t.me/SLTCUpdates")
+    reply_markup = buttons.build_menu(1)
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
         start_string = f'''
-This bot can mirror all your links to Google Drive or to telegram!
+This bot can mirror all your links to Google Drive!
 Type /{BotCommands.HelpCommand} to get a list of available commands
 '''
         sendMarkup(start_string, context.bot, update.message, reply_markup)
     else:
-        sendMarkup('Not an Authorized user, deploy your own mirror-leech bot', context.bot, update.message, reply_markup)
+        sendMarkup('Join our channel for any updates!!', context.bot, update.message, reply_markup)
 
 def restart(update, context):
     restart_message = sendMessage("Restarting...", context.bot, update.message)
@@ -180,7 +193,7 @@ def main():
     elif not notifier_dict and AUTHORIZED_CHATS:
         for id_ in AUTHORIZED_CHATS:
             try:
-                bot.sendMessage(id_, "Bot Restarted!", 'HTML')
+                bot.sendMessage(id_, "<b>Bot Restarted!</b>", 'HTML')
             except Exception as e:
                 LOGGER.error(e)
 
