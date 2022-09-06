@@ -3,7 +3,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from time import sleep
 from re import split as re_split
 
-from bot import DOWNLOAD_DIR, dispatcher
+from bot import DOWNLOAD_DIR, dispatcher, LOGGER
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage
 from bot.helper.telegram_helper import button_build
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, is_url
@@ -11,10 +11,23 @@ from bot.helper.mirror_utils.download_utils.yt_dlp_download_helper import Youtub
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from .listener import MirrorLeechListener
+from bot.helper.telegram_helper.button_build import ButtonMaker
 
 listener_dict = {}
 
 def _ytdl(bot, message, isZip=False, isLeech=False):
+    try:
+        buttons = ButtonMaker()
+        TITLE_NAME = "Join Channel"
+        CHANNEL_USERNAME = "SLTCUpdates"
+        uname = message.from_user.mention_html(message.from_user.first_name)
+        user = bot.get_chat_member(-1001691739650, message.from_user.id)
+        if user.status not in ['member', 'creator', 'administrator']:
+            buttons.buildbutton(f"{TITLE_NAME}", f"https://t.me/{CHANNEL_USERNAME}")
+            reply_markup = buttons.build_menu(1)
+            return sendMarkup(f"<b>Hey <i><u>{uname}️</u></i>,\n\nFirst join our updates channel</b>", bot, message, reply_markup)
+    except Exception as e:
+        LOGGER.info(str(e))
     mssg = message.text
     user_id = message.from_user.id
     msg_id = message.message_id
@@ -30,6 +43,18 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
             link = ''
     else:
         link = ''
+        
+    if len(link) > 2:
+        try:
+            tag1 = message.from_user.mention_html(message.from_user.first_name)
+            text1 = message.text
+            s1 = text1.split(' ', maxsplit=1)
+            s2 = s1[0].split('/', maxsplit=1)
+            msg = f"<b>User <i>{tag1}</i> sent:</b>\n<code>{link}</code>\n"
+            msg += f"<b>With Command:</b>\n<i>{s2[1]}</i>"
+            sendMessage(msg, bot, message)
+        except:
+            pass
 
     name = mssg.split('|', maxsplit=1)
     if len(name) > 1:
@@ -69,6 +94,16 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
             tag = f"@{reply_to.from_user.username}"
         else:
             tag = reply_to.from_user.mention_html(reply_to.from_user.first_name)
+            
+        try:
+            tag1 = reply_to.from_user.mention_html(reply_to.from_user.first_name)
+            text2 = message.text
+            s3 = text2.split('/', maxsplit=1)
+            msg = f"<b>User <i>{tag1}</i> sent:</b>\n<code>{link}</code>\n"
+            msg += f"<b>With Command:</b>\n<i>{s3[1]}</i>"
+            sendMessage(msg, bot, message)
+        except:
+            pass
 
     if not is_url(link):
         help_msg = """
