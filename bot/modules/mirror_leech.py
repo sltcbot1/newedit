@@ -5,7 +5,7 @@ from threading import Thread
 from telegram.ext import CommandHandler
 
 from bot import dispatcher, DOWNLOAD_DIR, LOGGER, MEGA_KEY
-from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type
+from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type, is_gdtot_link
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.mirror_utils.download_utils.aria2_download import add_aria2c_download
 from bot.helper.mirror_utils.download_utils.gd_downloader import add_gd_download
@@ -15,11 +15,24 @@ from bot.helper.mirror_utils.download_utils.direct_link_generator import direct_
 from bot.helper.mirror_utils.download_utils.telegram_downloader import TelegramDownloadHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.message_utils import sendMessage
+from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup
 from .listener import MirrorLeechListener
+from bot.helper.telegram_helper.button_build import ButtonMaker
 
 
 def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeech=False):
+    try:
+        buttons = ButtonMaker()
+        TITLE_NAME = "Join Channel"
+        CHANNEL_USERNAME = "SLTCUpdates"
+        uname = message.from_user.mention_html(message.from_user.first_name)
+        user = bot.get_chat_member(-1001691739650, message.from_user.id)
+        if user.status not in ['member', 'creator', 'administrator']:
+            buttons.buildbutton(f"{TITLE_NAME}", f"https://t.me/{CHANNEL_USERNAME}")
+            reply_markup = buttons.build_menu(1)
+            return sendMarkup(f"<b>Hey <i><u>{uname}️</u></i>,\n\nFirst join our updates channel</b>", bot, message, reply_markup)
+    except Exception as e:
+        LOGGER.info(str(e))
     mesg = message.text.split('\n')
     message_args = mesg[0].split(maxsplit=1)
     name_args = mesg[0].split('|', maxsplit=1)
@@ -83,7 +96,19 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         tag = f"@{message.from_user.username}"
     else:
         tag = message.from_user.mention_html(message.from_user.first_name)
-
+    
+    if len(link) > 2:
+       try:
+          tag1 = message.from_user.mention_html(message.from_user.first_name)
+          text1 = message.text
+          s1 = text1.split(' ', maxsplit=1)
+          s2 = s1[0].split('/', maxsplit=1)
+          msg = f"<b>User <i>{tag1}</i> sent:</b>\n<code>{link}</code>\n"
+          msg += f"<b>With Command:</b>\n<i>{s2[1]}</i>"
+          sendMessage(msg, bot, message)
+       except:
+           pass
+           
     reply_to = message.reply_to_message
     if reply_to is not None:
         file_ = reply_to.document or reply_to.video or reply_to.audio or reply_to.photo or None
@@ -97,6 +122,15 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 reply_text = reply_to.text.split(maxsplit=1)[0].strip()
                 if is_url(reply_text) or is_magnet(reply_text):
                     link = reply_to.text.strip()
+                    try:
+                        tag1 = reply_to.from_user.mention_html(reply_to.from_user.first_name)
+                        text2 = message.text
+                        s3 = text2.split('/', maxsplit=1)
+                        msg = f"<b>User <i>{tag1}</i> sent:</b>\n<code>{link}</code>\n"
+                        msg += f"<b>With Command:</b>\n<i>{s3[1]}</i>"
+                        sendMessage(msg, bot, message)
+                    except:
+                       pass
             elif isinstance(file_, list):
                 link = file_[-1].get_file().file_path
             elif not isQbit and file_.mime_type != "application/x-bittorrent":
@@ -153,6 +187,7 @@ Number should be always before |newname or pswd:
         content_type = get_content_type(link)
         if content_type is None or re_match(r'text/html|text/plain', content_type):
             try:
+                is_gdtot = is_gdtot_link(link)
                 link = direct_link_generator(link)
                 LOGGER.info(f"Generated link: {link}")
             except DirectDownloadLinkException as e:
@@ -169,12 +204,12 @@ Number should be always before |newname or pswd:
             gmsg += f"Use /{BotCommands.UnzipMirrorCommand[0]} to extracts Google Drive archive folder/file"
             sendMessage(gmsg, bot, message)
         else:
-            Thread(target=add_gd_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, name)).start()
+            Thread(target=add_gd_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, name, is_gdtot)).start()
     elif is_mega_link(link):
         if MEGA_KEY is not None:
             Thread(target=MegaDownloader(listener).add_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}/')).start()
         else:
-            sendMessage('MEGA_API_KEY not Provided!', bot, message)
+            sendMessage('MEGA links are BLOCKED!', bot, message)
     elif isQbit:
         Thread(target=QbDownloader(listener).add_qb_torrent, args=(link, f'{DOWNLOAD_DIR}{listener.uid}',
                                                                    select, ratio, seed_time)).start()
