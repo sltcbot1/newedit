@@ -23,6 +23,7 @@ class QbDownloader:
         self.__uploaded = False
         self.__rechecked = False
         self.__stopDup_check = False
+        self.__sizeChecked = False
         self.__select = False
         self.__periodic = None
 
