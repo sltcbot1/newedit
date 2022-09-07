@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 from base64 import standard_b64encode
 from time import sleep
 
-from bot import LOGGER, UPTOBOX_TOKEN
+from bot import LOGGER, UPTOBOX_TOKEN, CRYPT
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.ext_utils.bot_utils import is_gdtot_link
