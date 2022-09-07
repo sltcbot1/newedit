@@ -12,6 +12,7 @@ from requests import get as rget, head as rhead, post as rpost, Session as rsess
 from re import findall as re_findall, sub as re_sub, match as re_match, search as re_search
 from urllib.parse import urlparse, unquote
 from json import loads as jsonloads
+from base64 import b64decode
 from lk21 import Bypass
 from cfscrape import create_scraper
 from bs4 import BeautifulSoup
