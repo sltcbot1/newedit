@@ -36,6 +36,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
     mesg = message.text.split('\n')
     message_args = mesg[0].split(maxsplit=1)
     name_args = mesg[0].split('|', maxsplit=1)
+    is_gdtot = False
     index = 1
     ratio = None
     seed_time = None
