@@ -3,7 +3,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from time import sleep
 from re import split as re_split
 
-from bot import DOWNLOAD_DIR, dispatcher, LOGGER
+from bot import DOWNLOAD_DIR, dispatcher, LOGGER, SUDO_USERS
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage
 from bot.helper.telegram_helper import button_build
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, is_url
@@ -28,10 +28,11 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
             return sendMarkup(f"<b>Hey <i><u>{uname}️</u></i>,\n\nFirst join our updates channel</b>", bot, message, reply_markup)
     except Exception as e:
         LOGGER.info(str(e))
-    return sendMessage("YTDL is BLOCKED temporarily", bot, message)
     mssg = message.text
     user_id = message.from_user.id
     msg_id = message.message_id
+    if user_id not in SUDO_USERS:
+        return sendMessage("YTDL is BLOCKED temporarily", bot, message)
     multi = 0
 
     link = mssg.split()
