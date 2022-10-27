@@ -1,7 +1,7 @@
 from time import sleep, time
 
 from bot import download_dict, download_dict_lock, BASE_URL, get_client, STOP_DUPLICATE, TORRENT_TIMEOUT, LOGGER, \
-                TORRENT_DIRECT_LIMIT,ZIP_UNZIP_LIMIT,STORAGE_THRESHOLD
+                TORRENT_DIRECT_LIMIT,ZIP_UNZIP_LIMIT,STORAGE_THRESHOLD, SUDO_USERS
 from bot.helper.mirror_utils.status_utils.qbit_download_status import QbDownloadStatus
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, deleteMessage, sendStatusMessage, update_all_messages, sendFile
@@ -119,6 +119,8 @@ class QbDownloader:
                     size = tor_info.size
                     arch = any([self.__listener.isZip, self.__listener.extract])
                     lsn = self.__listener
+                    if lsn.uid in SUDO_USERS:
+                      return
                     if STORAGE_THRESHOLD is not None:
                         acpt = check_storage_threshold(size, arch)
                         if not acpt:
