@@ -7,7 +7,7 @@ from psutil import virtual_memory, cpu_percent, disk_usage
 from requests import head as rhead
 from urllib.request import urlopen
 
-from bot import download_dict, download_dict_lock, STATUS_LIMIT, botStartTime, DOWNLOAD_DIR, WEB_PINCODE, BASE_URL
+from bot import download_dict, download_dict_lock, STATUS_LIMIT, botStartTime, DOWNLOAD_DIR, WEB_PINCODE, BASE_URL, SUDO_USERS
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
@@ -168,7 +168,8 @@ def get_readable_message():
                     except:
                         pass
                 msg += f"\n<b>⏱ Elapsed : </b>{get_readable_time(time() - download.message.date.timestamp())}"
-                msg += f'\n<b>👤 User :<i> <a href="https://t.me/c/{str(download.message.chat.id)[4:]}/{download.message.message_id}">{download.message.from_user.first_name}</a></i></b>'
+                if not download.message.from_user.id in SUDO_USERS:
+                    msg += f'\n<b>👤 User :<i> <a href="https://t.me/c/{str(download.message.chat.id)[4:]}/{download.message.message_id}">{download.message.from_user.first_name}</a></i></b>'
                 msg += f"\n<b>To Cancel❌:</b> <code>/{BotCommands.CancelMirror} {download.gid()}</code>"
             elif download.status() == MirrorStatus.STATUS_SEEDING:
                 msg += f"\n<b>🌐 Size: </b>{download.size()}"
@@ -177,7 +178,8 @@ def get_readable_message():
                 msg += f"\n<b>🌐 Ratio: </b>{round(download.torrent_info().ratio, 3)}"
                 msg += f" | <b>🌐 Time: </b>{get_readable_time(download.torrent_info().seeding_time)}"
                 msg += f"\n<b>⏱ Elapsed : </b>{get_readable_time(time() - download.message.date.timestamp())}"
-                msg += f'\n<b>👤 User :<i> <a href="https://t.me/c/{str(download.message.chat.id)[4:]}/{download.message.message_id}">{download.message.from_user.first_name}</a></i></b>'
+                if not download.message.from_user.id in SUDO_USERS:
+                    msg += f'\n<b>👤 User :<i> <a href="https://t.me/c/{str(download.message.chat.id)[4:]}/{download.message.message_id}">{download.message.from_user.first_name}</a></i></b>'
                 msg += f"\n<b>To Cancel❌:</b> <code>/{BotCommands.CancelMirror} {download.gid()}</code>"
             else:
                 msg += f"\n<b>🌐 Size: </b>{download.size()}"
