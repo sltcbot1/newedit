@@ -33,6 +33,7 @@ def __onDownloadStarted(api, gid):
             sleep(1)
             if dl := getDownloadByGid(gid):
                 listener = dl.listener()
+                LOGGER.info(f'{listener.uid}')
                 if listener.uid in SUDO_USERS:
                     return
                 if listener.isLeech or listener.select:
