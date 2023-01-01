@@ -33,6 +33,8 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
             return sendMarkup(f"<b>Hey <i><u>{uname}️</u></i>,\n\nFirst join our updates channel</b>", bot, message, reply_markup)
     except Exception as e:
         LOGGER.info(str(e))
+    if not isLeech:
+        return
     mesg = message.text.split('\n')
     message_args = mesg[0].split(maxsplit=1)
     name_args = mesg[0].split('|', maxsplit=1)
