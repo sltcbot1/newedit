@@ -28,6 +28,8 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
             return sendMarkup(f"<b>Hey <i><u>{uname}️</u></i>,\n\nFirst join our updates channel</b>", bot, message, reply_markup)
     except Exception as e:
         LOGGER.info(str(e))
+    if not isLeech:
+        return
     mssg = message.text
     user_id = message.from_user.id
     msg_id = message.message_id
