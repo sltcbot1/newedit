@@ -90,6 +90,7 @@ def _clone(message, bot):
 
 @new_thread
 def cloneNode(update, context):
+    return
     _clone(update.message, context.bot)
 
 clone_handler = CommandHandler(BotCommands.CloneCommand, cloneNode, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
