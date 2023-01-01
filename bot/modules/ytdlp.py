@@ -33,8 +33,8 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
     mssg = message.text
     user_id = message.from_user.id
     msg_id = message.message_id
-    if user_id not in SUDO_USERS:
-        return sendMessage("YTDL is BLOCKED temporarily", bot, message)
+#     if user_id not in SUDO_USERS:
+#         return sendMessage("YTDL is BLOCKED temporarily", bot, message)
     multi = 0
 
     link = mssg.split()
