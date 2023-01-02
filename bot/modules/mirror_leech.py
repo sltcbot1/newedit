@@ -71,8 +71,9 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 if len(dargs) == 3:
                     seed_time = dargs[2] if dargs[2] else None
             elif x.isdigit():
-                multi = int(x)
-                mi = index
+                return
+#                 multi = int(x)
+#                 mi = index
         if multi == 0:
             message_args = mesg[0].split(maxsplit=index)
             if len(message_args) > index:
