@@ -3,7 +3,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from time import sleep
 from re import split as re_split
 
-from bot import DOWNLOAD_DIR, dispatcher, LOGGER, SUDO_USERS
+from bot import DOWNLOAD_DIR, dispatcher, LOGGER, SUDO_USERS, download_dict_lock, download_dict
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage
 from bot.helper.telegram_helper import button_build
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, is_url
@@ -30,6 +30,13 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
         LOGGER.info(str(e))
     if not isLeech:
         return
+    with download_dict_lock:
+        lst = []
+        for msg_id in download_dict:
+            lst.append(download_dict[msg_id].message.from_user.id)
+    cuid = message.from_user.id
+    if (cuid in lst) and (cuid not in SUDO_USERS):
+        return sendMessage("Wait for your currently processing task to complete", bot, message)
     mssg = message.text
     user_id = message.from_user.id
     msg_id = message.message_id
