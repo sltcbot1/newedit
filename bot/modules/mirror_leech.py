@@ -4,7 +4,7 @@ from time import sleep
 from threading import Thread
 from telegram.ext import CommandHandler
 
-from bot import dispatcher, DOWNLOAD_DIR, LOGGER, MEGA_KEY
+from bot import dispatcher, DOWNLOAD_DIR, LOGGER, MEGA_KEY, download_dict_lock, download_dict, SUDO_USERS
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type, is_gdtot_link
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.mirror_utils.download_utils.aria2_download import add_aria2c_download
@@ -35,6 +35,13 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         LOGGER.info(str(e))
     if not isLeech:
         return
+    with download_dict_lock:
+        lst = []
+        for msg_id in download_dict:
+            lst.append(download_dict[msg_id].message.from_user.id)
+    cuid = message.from_user.id
+    if (cuid in lst) and (cuid not in SUDO_USERS):
+        return sendMessage("Wait for your currently processing task to complete", bot, message)
     mesg = message.text.split('\n')
     message_args = mesg[0].split(maxsplit=1)
     name_args = mesg[0].split('|', maxsplit=1)
