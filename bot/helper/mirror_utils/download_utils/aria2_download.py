@@ -36,8 +36,8 @@ def __onDownloadStarted(api, gid):
                 LOGGER.info(f'{listener.uid}')
                 if listener.uid in SUDO_USERS:
                     return
-                if listener.isLeech or listener.select:
-                    return
+#                 if listener.isLeech or listener.select:
+#                     return
                 download = api.get_download(gid)
                 if not download.is_torrent:
                     sleep(3)
