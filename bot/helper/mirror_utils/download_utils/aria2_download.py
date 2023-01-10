@@ -74,7 +74,7 @@ def __onDownloadStarted(api, gid):
                         msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
                         listener.onDownloadError(msg)
                         return api.remove([download], force=True, files=True)
-                if ZIP_UNZIP_LIMIT is not None and arch:
+                if ZIP_UNZIP_LIMIT is not None and any([listener.isZip, listener.extract]):
                     mssg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
                     limit = ZIP_UNZIP_LIMIT
                 elif TORRENT_DIRECT_LIMIT is not None:
